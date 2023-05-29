@@ -21,27 +21,32 @@ public class MeuFiltro extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         System.out.println("Debug Requisição passou pelo filtro");
-        //validaremos se a requisção tem um cabeçalho, se houver, será colocado essa msg
-        //dentro da requisição e será encaminhada
-        Authentication auth = TokenConfig.codificarToken(request);
 
-        //cabeçalho de autorização existe, preciso saber se é valido
-        if (auth != null){
-            //Se o Token for valido. a requisição será enviada para o endpoint indicado que esta autenticada
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            System.out.println("Debug Requisição passou pelo Token");
-        }else {
-            //Tratamento simples de erro, caso haja um token
-            System.out.println("Error de Token");
-            ErrorDto errorDto = new ErrorDto(401,"Usuario não autorizado para este sistema");
-            response.setStatus(errorDto.getStatus());
-            response.setContentType(errorDto.getMessage());
-            ObjectMapper mapper = new ObjectMapper();
-            response.getWriter().print(mapper.writeValueAsString(errorDto));
-            response.getWriter().flush();
-            return;
+
+        if (request.getHeader("Authorization") != null) {
+            //validaremos se a requisção tem um cabeçalho, se houver, será colocado essa msg
+            //dentro da requisição e será encaminhada
+            Authentication auth = TokenConfig.decodificarToken(request);
+
+            //cabeçalho de autorização existe, preciso saber se é valido
+            if (auth != null) {
+                //Se o Token for valido. a requisição será enviada para o endpoint indicado que esta autenticada
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                System.out.println("Debug Requisição passou pelo Token");
+            } else {
+                //Tratamento simples de erro, caso haja um token
+                System.out.println("Error de Token");
+                ErrorDto errorDto = new ErrorDto(401, "Usuario não autorizado para este sistema");
+                response.setStatus(errorDto.getStatus());
+                response.setContentType("application/json");
+                ObjectMapper mapper = new ObjectMapper();
+                response.getWriter().print(mapper.writeValueAsString(errorDto));
+                response.getWriter().flush();
+                return;
+            }
+
         }
         //passa a requisição para frente
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }

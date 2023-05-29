@@ -15,9 +15,11 @@ public class MinhaConfigSeguranca {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { // Este é um método que configura as regras de segurança do Spring Security.
         // Ele recebe um objeto HttpSecurity que permite configurar a segurança HTTP.
-        http.authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry//Este método configura as regras de autorização para as requisições HTTP.
-                .requestMatchers(HttpMethod.GET, "/free").permitAll()//aqui seleciona quais requisições serão liberadas
-                .anyRequest().authenticated());//aqui as requisiçõe serão passeiveis de autenticação
+        http.csrf().disable()
+                .authorizeHttpRequests(authorize -> authorize//Este método configura as regras de autorização para as requisições HTTP.
+                        .requestMatchers(HttpMethod.GET, "/free").permitAll()//aqui seleciona quais requisições serão liberadas
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .anyRequest().authenticated());//aqui as requisiçõe serão passeiveis de autenticação
         //nesse método abaixo estamos definindo a ordem dos filtros, podem haver um ou mais, então temos que especificar a ordem.
         http.addFilterBefore(new MeuFiltro(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
@@ -45,5 +47,5 @@ public class MinhaConfigSeguranca {
 //                );
 //
 //                return http.build();
-            }
+}
    
